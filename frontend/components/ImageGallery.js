@@ -7,7 +7,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 function getImageSrc(url) {
     if (!url) return null;
-    if (url.startsWith('/uploads/')) return `${API_URL}${url}`;
     return url;
 }
 

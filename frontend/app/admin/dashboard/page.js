@@ -20,7 +20,6 @@ const CATEGORIES = ['shirts', 'jackets', 'pants', 'accessories'];
 
 function getImg(url) {
     if (!url) return null;
-    if (url.startsWith('/uploads/')) return `${API_URL}${url}`;
     return url;
 }
 

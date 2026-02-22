@@ -7,7 +7,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 function getImageSrc(url) {
     if (!url) return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
-    if (url.startsWith('/uploads/')) return `${API_URL}${url}`;
     return url;
 }
 
