@@ -1,0 +1,143 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--black-3);
+    border: 1px solid var(--glass-border);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.35s var(--ease);
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--silver-dim);
+}
+
+/* Image */
+.imageWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+}
+
+.image {
+    object-fit: cover;
+    transition: transform 0.5s var(--ease);
+}
+
+.card:hover .image {
+    transform: scale(1.07);
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+    transition: opacity 0.3s;
+    opacity: 0.5;
+}
+
+.hoverInfo {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease);
+}
+
+.card:hover .hoverInfo {
+    opacity: 1;
+}
+
+.viewText {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white);
+    padding: 10px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 100px;
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.4);
+    transform: translateY(10px);
+    transition: transform 0.3s var(--ease);
+}
+
+.card:hover .viewText {
+    transform: translateY(0);
+}
+
+.categoryBadge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--silver);
+    padding: 4px 12px;
+    border-radius: 100px;
+}
+
+/* Info */
+.info {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.name {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.price {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--silver-3);
+}
+
+.sizes {
+    display: flex;
+    gap: 4px;
+}
+
+.size {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--font-display);
+}

@@ -1,0 +1,51 @@
+.wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.wrap::-webkit-scrollbar {
+    display: none;
+}
+
+.track {
+    display: flex;
+    gap: 10px;
+    padding: 4px 2px;
+    width: max-content;
+    min-width: 100%;
+}
+
+.pill {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 9px 22px;
+    border-radius: 100px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: all 0.25s var(--ease);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.pill:hover {
+    color: var(--silver-3);
+    border-color: var(--silver-dim);
+    background: var(--glass-hover);
+}
+
+.active {
+    background: var(--silver);
+    color: var(--black);
+    border-color: var(--silver);
+}
+
+.active:hover {
+    background: var(--silver-3);
+    color: var(--black);
+}

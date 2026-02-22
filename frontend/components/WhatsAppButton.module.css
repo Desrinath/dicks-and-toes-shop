@@ -1,0 +1,14 @@
+.btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 18px;
+    border-radius: 14px;
+    letter-spacing: 0.03em;
+}
+
+.sent {
+    background: #1fa84e;
+    animation: none;
+}

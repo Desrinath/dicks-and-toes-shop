@@ -1,0 +1,317 @@
+/* ══ HERO ══ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: calc(var(--nav-height) + 40px) 0 80px;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bgOrb1 {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle at center, rgba(192, 192, 192, 0.07) 0%, transparent 70%);
+  animation: floatBg 12s ease-in-out infinite;
+}
+
+.bgOrb2 {
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle at center, rgba(150, 150, 150, 0.05) 0%, transparent 70%);
+  animation: floatBg 15s ease-in-out infinite reverse;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(192, 192, 192, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(192, 192, 192, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  animation: fadeInUp 1s var(--ease) forwards;
+}
+
+.heroTag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--silver-2);
+  padding: 8px 20px;
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  background: var(--glass);
+  backdrop-filter: blur(8px);
+  margin-bottom: -150px;
+  position: relative;
+  z-index: 10;
+}
+
+.heroLogoWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0px;
+  animation: brandGlow 4s ease-in-out infinite;
+}
+
+.heroLogo {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  object-fit: contain;
+  /* Blend mode to make the white background disappear if the logo has one */
+  mix-blend-mode: screen;
+}
+
+.heroSub {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: -200px auto 40px;
+  line-height: 1.8;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+
+/* Stats */
+.heroStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statNum {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--silver-3);
+}
+
+.statLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.statDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--glass-border);
+}
+
+/* Scroll indicator */
+.scrollIndicator {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scrollLine {
+  display: block;
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--silver), transparent);
+  animation: fadeIn 2s ease infinite alternate;
+}
+
+.scrollText {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ══ COLLECTIONS ══ */
+.collections {
+  padding: 80px 0;
+  background: var(--black);
+}
+
+.filterWrap {
+  margin-bottom: 40px;
+}
+
+.loadingWrap {
+  display: flex;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.cardWrap {
+  animation: fadeInUp 0.6s var(--ease) both;
+}
+
+.viewAllWrap {
+  text-align: center;
+  margin-top: 48px;
+}
+
+/* ══ ABOUT STRIP ══ */
+.aboutStrip {
+  padding: 80px 0;
+  background: var(--black-2);
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.stripInner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.stripText h2 {
+  margin: 16px 0;
+  line-height: 1.2;
+}
+
+.stripText p {
+  line-height: 1.8;
+}
+
+.stripVisual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.visualCard {
+  aspect-ratio: 1;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease);
+}
+
+.cardBgImage {
+  object-fit: cover;
+  z-index: 0;
+  transition: transform 0.6s var(--ease);
+}
+
+.visualCard:hover .cardBgImage {
+  transform: scale(1.05);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.1));
+  z-index: 1;
+}
+
+.visualCard:hover {
+  border-color: var(--silver-dim);
+  background: var(--glass-hover);
+  transform: translateY(-4px);
+}
+
+.visualInner {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.visualIcon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.visualInner h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.visualInner p {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .stripInner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .heroStats {
+    gap: 20px;
+  }
+
+  .statDivider {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .heroLogo {
+    max-width: 95%;
+    transform: scale(1.1);
+  }
+}

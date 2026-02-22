@@ -1,0 +1,196 @@
+.main {
+    padding-top: var(--nav-height);
+}
+
+/* Hero */
+.hero {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 80px 0;
+}
+
+.heroBg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 60% 50%, rgba(192, 192, 192, 0.07) 0%, transparent 60%),
+        linear-gradient(180deg, var(--black) 0%, var(--black-2) 100%);
+}
+
+.heroContent {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    animation: fadeInUp 0.8s var(--ease) forwards;
+}
+
+.heroTitle {
+    margin: 16px 0 20px;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    line-height: 1.15;
+}
+
+.heroSub {
+    max-width: 520px;
+    margin: 0 auto;
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+/* Values */
+.values {
+    background: var(--black);
+}
+
+.valuesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.valueCard {
+    padding: 32px;
+    transition: all 0.3s var(--ease);
+}
+
+.valueCard:hover {
+    border-color: var(--silver-dim);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.valueImageWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 16px;
+    margin-bottom: 24px;
+}
+
+.valueImage {
+    object-fit: cover;
+    transition: transform 0.6s var(--ease);
+}
+
+.valueCard:hover .valueImage {
+    transform: scale(1.05);
+}
+
+.valueContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.valueIcon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.valueCard h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.valueCard p {
+    font-size: 0.88rem;
+    line-height: 1.7;
+}
+
+/* Process */
+.process {
+    padding: 80px 0;
+    background: var(--black-2);
+    border-top: 1px solid var(--glass-border);
+}
+
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.step:last-child {
+    border-bottom: none;
+}
+
+.stepNum {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--silver-dim);
+    flex-shrink: 0;
+    width: 56px;
+    line-height: 1;
+}
+
+.step h4 {
+    font-size: 1rem;
+    margin-bottom: 6px;
+}
+
+.step p {
+    font-size: 0.88rem;
+}
+
+/* Contact */
+.contact {
+    background: var(--black);
+}
+
+.contactCard {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px 48px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.contactCard h2 {
+    margin: 8px 0;
+}
+
+.contactLinks {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .valuesGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .contactCard {
+        padding: 40px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .valuesGrid {
+        grid-template-columns: 1fr;
+    }
+}
