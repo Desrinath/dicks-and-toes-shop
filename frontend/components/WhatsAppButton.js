@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import styles from './WhatsAppButton.module.css';
 
-export default function WhatsAppButton({ product, selectedSize, whatsappNumber }) {
+export default function WhatsAppButton({ product, selectedSize, whatsappNumber, finalPrice, appliedCoupon }) {
     const [clicked, setClicked] = useState(false);
     const number = whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999';
     const price = typeof product.price === 'number'
@@ -12,10 +12,17 @@ export default function WhatsAppButton({ product, selectedSize, whatsappNumber }
     const buildMessage = () => {
         const sizeInfo = selectedSize ? `\n📐 Size: *${selectedSize}*` : '';
         const productUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+        let priceText = `💰 Price: *${price}*`;
+        if (appliedCoupon) {
+            const finalStr = finalPrice.toLocaleString('en-IN');
+            priceText = `💰 Price: ~${price}~ *₹${finalStr}* (Coupon applied: ${appliedCoupon})`;
+        }
+
         return encodeURIComponent(
             `Hi *DICKS & TOES*! 👋\n\nI'm interested in buying:\n\n` +
             `👕 *${product.name}*\n` +
-            `💰 Price: *${price}*${sizeInfo}\n` +
+            `${priceText}${sizeInfo}\n` +
             `🎨 Color: ${product.color || 'N/A'}\n\n` +
             `🔗 Product Link: ${productUrl}\n\n` +
             `Looking forward to your response! 🙏`

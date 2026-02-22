@@ -10,6 +10,9 @@ const EMPTY_FORM = {
     name: '', price: '', category: 'shirts', description: '',
     color: '', video_url: '',
     sizes: [],
+    condition: 'Good',
+    coupon_code: '',
+    discount_amount: '',
     measurements: { chest: '', length: '', shoulder: '', sleeve: '' },
 };
 const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
@@ -117,6 +120,9 @@ export default function AdminDashboard() {
             fd.append('description', form.description);
             fd.append('color', form.color);
             fd.append('video_url', form.video_url);
+            fd.append('condition', form.condition);
+            fd.append('coupon_code', form.coupon_code);
+            fd.append('discount_amount', form.discount_amount || 0);
             fd.append('sizes', JSON.stringify(form.sizes));
             fd.append('measurements', JSON.stringify(
                 Object.fromEntries(Object.entries(form.measurements).filter(([, v]) => v))
@@ -156,6 +162,9 @@ export default function AdminDashboard() {
             description: product.description || '',
             color: product.color || '',
             video_url: product.video_url || '',
+            condition: product.condition || 'Good',
+            coupon_code: product.coupon_code || '',
+            discount_amount: product.discount_amount || '',
             sizes: product.sizes || [],
             measurements: {
                 chest: product.measurements?.chest || '',
@@ -361,6 +370,31 @@ export default function AdminDashboard() {
                                                     placeholder={`${key.charAt(0).toUpperCase() + key.slice(1)} (e.g. 42 in)`}
                                                 />
                                             ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Additional Fields */}
+                                    <div className={styles.formRow}>
+                                        <div className="form-group">
+                                            <label>Condition</label>
+                                            <select name="condition" className="form-input" value={form.condition} onChange={handleChange}>
+                                                <option value="Excellent">Excellent</option>
+                                                <option value="Good">Good</option>
+                                                <option value="Neat">Neat</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.formRow}>
+                                        <div className="form-group">
+                                            <label>Coupon Code (Optional)</label>
+                                            <input name="coupon_code" className="form-input" value={form.coupon_code}
+                                                onChange={handleChange} placeholder="e.g. WINTER50" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Discount Amount (₹)</label>
+                                            <input name="discount_amount" type="number" className="form-input" value={form.discount_amount}
+                                                onChange={handleChange} placeholder="e.g. 200" min="0" />
                                         </div>
                                     </div>
                                 </div>

@@ -19,6 +19,11 @@ export default function ProductDetailPage() {
     const [selectedSize, setSelectedSize] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999');
 
+    // Coupon state
+    const [couponInput, setCouponInput] = useState('');
+    const [appliedDiscount, setAppliedDiscount] = useState(0);
+    const [couponStatus, setCouponStatus] = useState(null); // 'success' | 'error' | null
+
     useEffect(() => {
         Promise.all([
             fetch(`${API_URL}/api/products/${id}`).then(r => {
@@ -62,9 +67,22 @@ export default function ProductDetailPage() {
         );
     }
 
-    const price = typeof product.price === 'number'
-        ? `₹${product.price.toLocaleString('en-IN')}`
-        : product.price;
+    const basePrice = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0;
+    const finalPrice = Math.max(0, basePrice - appliedDiscount);
+
+    const formatPrice = (p) => `₹${p.toLocaleString('en-IN')}`;
+
+    const handleApplyCoupon = () => {
+        if (!couponInput.trim()) return;
+
+        if (product.coupon_code && couponInput.trim().toUpperCase() === product.coupon_code.toUpperCase()) {
+            setAppliedDiscount(Number(product.discount_amount) || 0);
+            setCouponStatus('success');
+        } else {
+            setAppliedDiscount(0);
+            setCouponStatus('error');
+        }
+    };
 
     return (
         <>
@@ -96,7 +114,14 @@ export default function ProductDetailPage() {
                             <h1 className={styles.name}>{product.name}</h1>
 
                             <div className={styles.priceRow}>
-                                <span className={styles.price}>{price}</span>
+                                {appliedDiscount > 0 ? (
+                                    <div className={styles.priceWrap}>
+                                        <span className={styles.priceStrikethrough}>{formatPrice(basePrice)}</span>
+                                        <span className={styles.price}>{formatPrice(finalPrice)}</span>
+                                    </div>
+                                ) : (
+                                    <span className={styles.price}>{formatPrice(basePrice)}</span>
+                                )}
                                 {product.color && (
                                     <span className={styles.colorPill}>
                                         <span className={styles.colorDot} style={{ background: '#C0C0C0' }} />
@@ -159,6 +184,33 @@ export default function ProductDetailPage() {
                                 </div>
                             )}
 
+                            {/* Coupon Section */}
+                            {product.coupon_code && (
+                                <div className={styles.couponSection}>
+                                    <h3 className={styles.sectionTitle} style={{ fontSize: '1rem', marginBottom: '8px' }}>Have a Promo Code?</h3>
+                                    <div className={styles.couponRow}>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="Enter code..."
+                                            value={couponInput}
+                                            onChange={(e) => {
+                                                setCouponInput(e.target.value);
+                                                setCouponStatus(null);
+                                            }}
+                                            style={{ flex: 1, textTransform: 'uppercase' }}
+                                        />
+                                        <button className="btn btn-outline" onClick={handleApplyCoupon} style={{ padding: '0 20px' }}>Apply</button>
+                                    </div>
+                                    {couponStatus === 'success' && (
+                                        <p className={styles.couponSuccess}>✓ Code applied! {formatPrice(product.discount_amount)} off.</p>
+                                    )}
+                                    {couponStatus === 'error' && (
+                                        <p className={styles.couponError}>Invalid code.</p>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="divider" />
 
                             {/* Buy button */}
@@ -167,6 +219,8 @@ export default function ProductDetailPage() {
                                     product={product}
                                     selectedSize={selectedSize}
                                     whatsappNumber={whatsappNumber}
+                                    finalPrice={finalPrice}
+                                    appliedCoupon={appliedDiscount > 0 ? product.coupon_code : null}
                                 />
                                 <p className={styles.buyNote}>
                                     💬 You&apos;ll be redirected to WhatsApp with product details pre-filled.
@@ -176,7 +230,11 @@ export default function ProductDetailPage() {
 
                             {/* Condition tags */}
                             <div className={styles.tags}>
-                                <span className={styles.tag}>✅ Verified condition</span>
+                                {product.condition && (
+                                    <span className={styles.tag}>
+                                        ✨ Condition: <strong>{product.condition}</strong>
+                                    </span>
+                                )}
                                 <span className={styles.tag}>🔒 Secure transaction</span>
                                 <span className={styles.tag}>📦 Fast dispatch</span>
                             </div>

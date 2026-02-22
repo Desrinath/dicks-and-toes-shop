@@ -146,10 +146,9 @@ export default function HomePage() {
                 <span className="section-label">About Us</span>
                 <h2>Not just a shop.<br />A lifestyle.</h2>
                 <p>
-                  We dig through charity shops, estates sales, and hidden markets
-                  so you don&apos;t have to. Every piece we carry has history, character,
-                  and serious style potential. This isn&apos;t fast fashion — it&apos;s slow,
-                  intentional dressing.
+                  We offer affordable, stylish pre-loved fashion that promotes sustainability and reduces waste.
+                  Every piece is quality-checked and unique. Shop smart, save money, and support eco-friendly
+                  fashion with us.
                 </p>
                 <a href="/about" className="btn btn-outline" style={{ marginTop: '24px' }}>
                   Learn More

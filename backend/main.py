@@ -97,6 +97,9 @@ async def create_product(
     sizes: str = Form("[]"),
     measurements: str = Form("{}"),
     video_url: str = Form(""),
+    condition: str = Form("Good"),
+    coupon_code: str = Form(""),
+    discount_amount: float = Form(0.0),
     header_image: Optional[UploadFile] = File(None),
     images: Optional[List[UploadFile]] = File(None),
     _admin: bool = Depends(verify_admin),
@@ -122,12 +125,12 @@ async def create_product(
     conn = get_db()
     conn.execute("""
         INSERT INTO products (id, name, price, category, description, header_image,
-            images, video_url, measurements, color, sizes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            images, video_url, measurements, color, sizes, condition, coupon_code, discount_amount, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         product_id, name, price, category, description, header_url,
         json.dumps(image_urls), video_url, measurements, color, sizes,
-        datetime.now().isoformat()
+        condition, coupon_code, discount_amount, datetime.now().isoformat()
     ))
     conn.commit()
     row = conn.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
@@ -146,6 +149,9 @@ async def update_product(
     sizes: str = Form("[]"),
     measurements: str = Form("{}"),
     video_url: str = Form(""),
+    condition: str = Form("Good"),
+    coupon_code: str = Form(""),
+    discount_amount: float = Form(0.0),
     header_image: Optional[UploadFile] = File(None),
     images: Optional[List[UploadFile]] = File(None),
     _admin: bool = Depends(verify_admin),
@@ -176,12 +182,12 @@ async def update_product(
 
     conn.execute("""
         UPDATE products SET name=?, price=?, category=?, description=?, header_image=?,
-            images=?, video_url=?, measurements=?, color=?, sizes=?
+            images=?, video_url=?, measurements=?, color=?, sizes=?, condition=?, coupon_code=?, discount_amount=?
         WHERE id=?
     """, (
         name, price, category, description, header_url,
         json.dumps(image_urls), video_url, measurements, color, sizes,
-        product_id
+        condition, coupon_code, discount_amount, product_id
     ))
     conn.commit()
     row = conn.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()

@@ -220,6 +220,48 @@
     line-height: 1.6;
 }
 
+/* Coupon Section */
+.couponSection {
+    margin: 20px 0;
+    padding: 16px;
+    background: var(--glass);
+    border: 1px dashed var(--glass-border);
+    border-radius: 12px;
+}
+
+.couponRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.couponSuccess {
+    font-size: 0.85rem;
+    color: #4CAF50;
+    margin: 0;
+    animation: fadeIn 0.3s var(--ease);
+}
+
+.couponError {
+    font-size: 0.85rem;
+    color: #F44336;
+    margin: 0;
+    animation: fadeIn 0.3s var(--ease);
+}
+
+.priceWrap {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.priceStrikethrough {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
 /* Tags */
 .tags {
     display: flex;

@@ -27,9 +27,29 @@ def init_db():
             measurements TEXT DEFAULT '{}',
             color TEXT DEFAULT '',
             sizes TEXT DEFAULT '[]',
+            condition TEXT DEFAULT 'Good',
+            coupon_code TEXT DEFAULT '',
+            discount_amount REAL DEFAULT 0,
             created_at TEXT
         )
     """)
+    
+    # Migration: Add new columns if they don't exist
+    try:
+        conn.execute("ALTER TABLE products ADD COLUMN condition TEXT DEFAULT 'Good'")
+    except sqlite3.OperationalError:
+        pass # Column already exists
+    
+    try:
+        conn.execute("ALTER TABLE products ADD COLUMN coupon_code TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE products ADD COLUMN discount_amount REAL DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
 
     # Seed sample data if empty
@@ -137,15 +157,23 @@ def init_db():
                 "measurements": json.dumps({"chest": "46 in", "length": "28 in", "shoulder": "20 in", "sleeve": "26 in"}),
                 "color": "Neon Yellow / Black",
                 "sizes": json.dumps(["S", "M", "L", "XL"]),
+                "condition": "Good",
+                "coupon_code": "",
+                "discount_amount": 0,
                 "created_at": datetime.now().isoformat()
             },
         ]
         for p in seed_products:
+            # For seed products without condition/coupon set explicitly in other items, default them manually if not inserted
+            p.setdefault("condition", "Good")
+            p.setdefault("coupon_code", "")
+            p.setdefault("discount_amount", 0)
+            
             conn.execute("""
                 INSERT INTO products (id, name, price, category, description, header_image, images,
-                    video_url, measurements, color, sizes, created_at)
+                    video_url, measurements, color, sizes, condition, coupon_code, discount_amount, created_at)
                 VALUES (:id, :name, :price, :category, :description, :header_image, :images,
-                    :video_url, :measurements, :color, :sizes, :created_at)
+                    :video_url, :measurements, :color, :sizes, :condition, :coupon_code, :discount_amount, :created_at)
             """, p)
         conn.commit()
     conn.close()
