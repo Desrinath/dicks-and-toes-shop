@@ -10,6 +10,17 @@ import styles from './page.module.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
+// Safely convert any JSONB field to an array of primitive strings
+function safeArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(String);
+    if (typeof val === 'string') {
+        try { const p = JSON.parse(val); return Array.isArray(p) ? p.map(String) : []; }
+        catch { return []; }
+    }
+    return [];
+}
+
 export default function ProductDetailPage() {
     const { id } = useParams();
     const router = useRouter();
@@ -33,6 +44,9 @@ export default function ProductDetailPage() {
             fetch(`${API_URL}/api/config`).then(r => r.json()).catch(() => ({})),
         ])
             .then(([productData, config]) => {
+                // Normalize JSONB arrays so they're always clean string arrays
+                productData.sizes = safeArray(productData.sizes);
+                productData.images = safeArray(productData.images);
                 setProduct(productData);
                 if (config.whatsappNumber) setWhatsappNumber(config.whatsappNumber);
                 if (productData.sizes?.length) setSelectedSize(productData.sizes[0]);

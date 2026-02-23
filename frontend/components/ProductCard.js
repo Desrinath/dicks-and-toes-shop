@@ -7,7 +7,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 function getImageSrc(url) {
     if (!url) return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
+    // If it's an array (e.g. images field passed by mistake), take first element
+    if (Array.isArray(url)) return url[0] || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
     return url;
+}
+
+// Safely parse JSONB fields that may come as strings, arrays or null
+function safeArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(String);
+    if (typeof val === 'string') {
+        try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed.map(String) : []; }
+        catch { return []; }
+    }
+    return [];
 }
 
 export default function ProductCard({ product }) {
@@ -15,6 +28,7 @@ export default function ProductCard({ product }) {
     const price = typeof product.price === 'number'
         ? `₹${product.price.toLocaleString('en-IN')}`
         : product.price;
+    const sizes = safeArray(product.sizes);
 
     return (
         <Link href={`/product/${product.id}`} className={styles.card}>
@@ -38,13 +52,13 @@ export default function ProductCard({ product }) {
                 <h3 className={styles.name}>{product.name}</h3>
                 <div className={styles.bottom}>
                     <span className={styles.price}>{price}</span>
-                    {product.sizes && product.sizes.length > 0 && (
+                    {sizes.length > 0 && (
                         <div className={styles.sizes}>
-                            {product.sizes.slice(0, 3).map(s => (
+                            {sizes.slice(0, 3).map(s => (
                                 <span key={s} className={styles.size}>{s}</span>
                             ))}
-                            {product.sizes.length > 3 && (
-                                <span className={styles.size}>+{product.sizes.length - 3}</span>
+                            {sizes.length > 3 && (
+                                <span className={styles.size}>+{sizes.length - 3}</span>
                             )}
                         </div>
                     )}

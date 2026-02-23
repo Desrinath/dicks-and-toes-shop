@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './page.module.css';
@@ -14,33 +14,24 @@ const EMPTY_FORM = {
     coupon_code: '',
     discount_amount: '',
     measurements: { chest: '', length: '', shoulder: '', sleeve: '' },
+    header_image: '',
+    extra_images: '',   // comma-separated extra image URLs
 };
 const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
 const CATEGORIES = ['shirts', 'jackets', 'pants', 'accessories'];
 
-function getImg(url) {
-    if (!url) return null;
-    return url;
-}
-
 export default function AdminDashboard() {
     const router = useRouter();
     const [token, setToken] = useState(null);
-
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState('upload'); // 'upload' | 'manage'
+    const [tab, setTab] = useState('upload');
     const [form, setForm] = useState(EMPTY_FORM);
-    const [headerFile, setHeaderFile] = useState(null);
-    const [detailFiles, setDetailFiles] = useState([]);
-    const [headerPreview, setHeaderPreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [editId, setEditId] = useState(null);
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
-    const [deleteTarget, setDeleteTarget] = useState(null); // { id, name }
-    const headerRef = useRef(null);
-    const detailRef = useRef(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     useEffect(() => {
         const t = localStorage.getItem('admin_token');
@@ -58,15 +49,8 @@ export default function AdminDashboard() {
         setLoading(false);
     };
 
-    const showSuccess = (msg) => {
-        setSuccessMsg(msg);
-        setTimeout(() => setSuccessMsg(''), 4000);
-    };
-
-    const showError = (msg) => {
-        setErrorMsg(msg);
-        setTimeout(() => setErrorMsg(''), 5000);
-    };
+    const showSuccess = (msg) => { setSuccessMsg(msg); setTimeout(() => setSuccessMsg(''), 4000); };
+    const showError = (msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(''), 5000); };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -85,33 +69,21 @@ export default function AdminDashboard() {
         }));
     };
 
-    const onHeaderChange = (e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setHeaderFile(file);
-            setHeaderPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const onDetailChange = (e) => {
-        setDetailFiles(Array.from(e.target.files || []));
-    };
-
-    const resetForm = () => {
-        setForm(EMPTY_FORM);
-        setHeaderFile(null);
-        setDetailFiles([]);
-        setHeaderPreview(null);
-        setEditId(null);
-        if (headerRef.current) headerRef.current.value = '';
-        if (detailRef.current) detailRef.current.value = '';
-    };
+    const resetForm = () => { setForm(EMPTY_FORM); setEditId(null); };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
         setErrorMsg('');
         try {
+            // Build extra image list from comma-separated string + header
+            const extraUrls = form.extra_images
+                ? form.extra_images.split(',').map(u => u.trim()).filter(Boolean)
+                : [];
+            const allImages = form.header_image
+                ? [form.header_image, ...extraUrls.filter(u => u !== form.header_image)]
+                : extraUrls;
+
             const fd = new FormData();
             fd.append('name', form.name);
             fd.append('price', form.price);
@@ -126,8 +98,8 @@ export default function AdminDashboard() {
             fd.append('measurements', JSON.stringify(
                 Object.fromEntries(Object.entries(form.measurements).filter(([, v]) => v))
             ));
-            if (headerFile) fd.append('header_image', headerFile);
-            detailFiles.forEach(f => fd.append('images', f));
+            fd.append('header_image', form.header_image || '');
+            fd.append('images', JSON.stringify(allImages));
 
             const url = editId
                 ? `${API_URL}/api/admin/products/${editId}`
@@ -154,6 +126,9 @@ export default function AdminDashboard() {
 
     const handleEdit = (product) => {
         setEditId(product.id);
+        const imgs = product.images || [];
+        const header = product.header_image || '';
+        const extra = imgs.filter(u => u !== header).join(', ');
         setForm({
             name: product.name || '',
             price: product.price || '',
@@ -171,14 +146,11 @@ export default function AdminDashboard() {
                 shoulder: product.measurements?.shoulder || '',
                 sleeve: product.measurements?.sleeve || '',
             },
+            header_image: header,
+            extra_images: extra,
         });
-        setHeaderPreview(getImg(product.header_image));
         setTab('upload');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleDelete = (id, name) => {
-        setDeleteTarget({ id, name });
     };
 
     const confirmDelete = async () => {
@@ -190,25 +162,18 @@ export default function AdminDashboard() {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.detail || `Server error ${res.status}`);
-            }
-            showSuccess('Product deleted successfully.');
+            if (!res.ok) throw new Error((await res.json()).detail || 'Error');
+            showSuccess('Product deleted.');
             loadProducts();
         } catch (err) {
-            showError(err.message || 'Could not delete product.');
+            showError(err.message || 'Could not delete.');
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('admin_token');
-        router.push('/admin');
-    };
+    const logout = () => { localStorage.removeItem('admin_token'); router.push('/admin'); };
 
     return (
         <div className={styles.page}>
-            {/* Inline Confirm Delete Modal */}
             {deleteTarget && (
                 <div style={{
                     position: 'fixed', inset: 0, zIndex: 2000,
@@ -218,52 +183,30 @@ export default function AdminDashboard() {
                     <div style={{
                         background: 'var(--black-3)', border: '1px solid var(--glass-border)',
                         borderRadius: '20px', padding: '36px', maxWidth: '420px', width: '100%',
-                        animation: 'scaleIn 0.25s var(--ease-bounce) forwards'
                     }}>
                         <div style={{ fontSize: '2rem', marginBottom: '16px', textAlign: 'center' }}>🗑️</div>
                         <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Delete Product?</h3>
                         <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '28px', fontSize: '0.9rem' }}>
-                            &ldquo;{deleteTarget.name}&rdquo; will be permanently removed from the store.
+                            &ldquo;{deleteTarget.name}&rdquo; will be permanently removed.
                         </p>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                            <button
-                                className="btn btn-ghost"
-                                onClick={() => setDeleteTarget(null)}
-                                style={{ flex: 1 }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-danger"
-                                onClick={confirmDelete}
-                                style={{ flex: 1 }}
-                            >
-                                Yes, Delete
-                            </button>
+                            <button className="btn btn-ghost" onClick={() => setDeleteTarget(null)} style={{ flex: 1 }}>Cancel</button>
+                            <button className="btn btn-danger" onClick={confirmDelete} style={{ flex: 1 }}>Yes, Delete</button>
                         </div>
                     </div>
                 </div>
             )}
-            {/* Sidebar */}
+
             <aside className={styles.sidebar}>
-                <div className={styles.sidebarLogo}>
-                    <span>D & T</span>
-                    <small>Admin</small>
-                </div>
+                <div className={styles.sidebarLogo}><span>D & T</span><small>Admin</small></div>
                 <nav className={styles.sideNav}>
-                    <button
-                        className={`${styles.navItem} ${tab === 'upload' ? styles.navActive : ''}`}
-                        onClick={() => setTab('upload')}
-                    >
+                    <button className={`${styles.navItem} ${tab === 'upload' ? styles.navActive : ''}`} onClick={() => setTab('upload')}>
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path d="M12 5v14M5 12l7-7 7 7" />
                         </svg>
                         {editId ? 'Edit Product' : 'Add Product'}
                     </button>
-                    <button
-                        className={`${styles.navItem} ${tab === 'manage' ? styles.navActive : ''}`}
-                        onClick={() => setTab('manage')}
-                    >
+                    <button className={`${styles.navItem} ${tab === 'manage' ? styles.navActive : ''}`} onClick={() => setTab('manage')}>
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
                             <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
@@ -278,20 +221,25 @@ export default function AdminDashboard() {
                 </div>
             </aside>
 
-            {/* Main content */}
             <main className={styles.content}>
-                {/* Toasts */}
                 {successMsg && <div className={styles.toast}>{successMsg}</div>}
                 {errorMsg && <div className={`${styles.toast} ${styles.toastError}`}>{errorMsg}</div>}
 
-                {/* Upload / Edit Tab */}
                 {tab === 'upload' && (
                     <div className={styles.uploadPanel}>
                         <div className={styles.panelHeader}>
                             <h2>{editId ? 'Edit Product' : 'Add New Product'}</h2>
-                            {editId && (
-                                <button className="btn btn-ghost" onClick={resetForm}>Cancel Edit</button>
-                            )}
+                            {editId && <button className="btn btn-ghost" onClick={resetForm}>Cancel Edit</button>}
+                        </div>
+
+                        {/* ImgBB helper banner */}
+                        <div style={{
+                            background: 'rgba(180,180,255,0.07)', border: '1px solid rgba(180,180,255,0.2)',
+                            borderRadius: '12px', padding: '14px 18px', marginBottom: '24px',
+                            fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.6
+                        }}>
+                            📸 <strong style={{ color: 'var(--text-primary)' }}>How to add images:</strong>&nbsp;
+                            Upload your photo to <a href="https://imgbb.com" target="_blank" rel="noreferrer" style={{ color: '#a0a0ff' }}>imgbb.com</a> (free) → click the image → copy the <em>Direct link</em> → paste it below.
                         </div>
 
                         <form onSubmit={handleSubmit} className={styles.form}>
@@ -338,41 +286,28 @@ export default function AdminDashboard() {
                                             onChange={handleChange} placeholder="https://..." />
                                     </div>
 
-                                    {/* Sizes */}
                                     <div className="form-group">
                                         <label>Sizes</label>
                                         <div className={styles.sizeGrid}>
                                             {ALL_SIZES.map(s => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
+                                                <button key={s} type="button"
                                                     className={`${styles.sizeBtn} ${form.sizes.includes(s) ? styles.sizeBtnActive : ''}`}
-                                                    onClick={() => toggleSize(s)}
-                                                >
-                                                    {s}
-                                                </button>
+                                                    onClick={() => toggleSize(s)}>{s}</button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Measurements */}
                                     <div className="form-group">
                                         <label>Measurements</label>
                                         <div className={styles.measureGrid}>
                                             {['chest', 'length', 'shoulder', 'sleeve'].map(key => (
-                                                <input
-                                                    key={key}
-                                                    name={key}
-                                                    className="form-input"
-                                                    value={form.measurements[key]}
-                                                    onChange={handleMeasurement}
-                                                    placeholder={`${key.charAt(0).toUpperCase() + key.slice(1)} (e.g. 42 in)`}
-                                                />
+                                                <input key={key} name={key} className="form-input"
+                                                    value={form.measurements[key]} onChange={handleMeasurement}
+                                                    placeholder={`${key.charAt(0).toUpperCase() + key.slice(1)} (e.g. 42 in)`} />
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Additional Fields */}
                                     <div className={styles.formRow}>
                                         <div className="form-group">
                                             <label>Condition</label>
@@ -392,8 +327,8 @@ export default function AdminDashboard() {
                                         </div>
                                         <div className="form-group">
                                             <label>Discount Amount (₹)</label>
-                                            <input name="discount_amount" type="number" className="form-input" value={form.discount_amount}
-                                                onChange={handleChange} placeholder="e.g. 200" min="0" />
+                                            <input name="discount_amount" type="number" className="form-input"
+                                                value={form.discount_amount} onChange={handleChange} placeholder="e.g. 200" min="0" />
                                         </div>
                                     </div>
                                 </div>
@@ -401,57 +336,27 @@ export default function AdminDashboard() {
                                 {/* Col 2 — Images */}
                                 <div className={styles.formCol}>
                                     <div className="form-group">
-                                        <label>Header Image *</label>
-                                        <div
-                                            className={styles.dropzone}
-                                            onClick={() => headerRef.current?.click()}
-                                        >
-                                            {headerPreview ? (
-                                                <div className={styles.previewImg}>
-                                                    <Image src={headerPreview} alt="Preview" fill style={{ objectFit: 'cover' }} />
-                                                    <div className={styles.previewOverlay}>Change Image</div>
-                                                </div>
-                                            ) : (
-                                                <div className={styles.dropzoneInner}>
-                                                    <span className={styles.dropIcon}>📷</span>
-                                                    <p>Click to upload header image</p>
-                                                    <span>JPG, PNG, WEBP</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <input
-                                            ref={headerRef}
-                                            type="file"
-                                            accept="image/*"
-                                            className={styles.fileInput}
-                                            onChange={onHeaderChange}
-                                        />
+                                        <label>Header / Main Image URL *</label>
+                                        <input name="header_image" className="form-input" value={form.header_image}
+                                            onChange={handleChange}
+                                            placeholder="https://i.ibb.co/your-image.jpg" />
+                                        {form.header_image && (
+                                            <div style={{ marginTop: '12px', borderRadius: '10px', overflow: 'hidden', height: '220px', position: 'relative' }}>
+                                                <Image src={form.header_image} alt="Preview" fill style={{ objectFit: 'cover' }}
+                                                    onError={() => { }} />
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group">
-                                        <label>Detail Images</label>
-                                        <div
-                                            className={styles.dropzone}
-                                            onClick={() => detailRef.current?.click()}
-                                        >
-                                            <div className={styles.dropzoneInner}>
-                                                <span className={styles.dropIcon}>🖼️</span>
-                                                <p>
-                                                    {detailFiles.length > 0
-                                                        ? `${detailFiles.length} file(s) selected`
-                                                        : 'Click to upload detail images'}
-                                                </p>
-                                                <span>Select multiple photos</span>
-                                            </div>
-                                        </div>
-                                        <input
-                                            ref={detailRef}
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            className={styles.fileInput}
-                                            onChange={onDetailChange}
-                                        />
+                                        <label>Extra Image URLs <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(comma-separated)</span></label>
+                                        <textarea name="extra_images" className="form-input" value={form.extra_images}
+                                            onChange={handleChange}
+                                            placeholder="https://i.ibb.co/img2.jpg, https://i.ibb.co/img3.jpg"
+                                            style={{ minHeight: '80px' }} />
+                                        <small style={{ color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
+                                            Separate multiple image links with a comma.
+                                        </small>
                                     </div>
 
                                     {/* Preview card */}
@@ -459,8 +364,8 @@ export default function AdminDashboard() {
                                         <p className={styles.previewLabel}>Product Preview</p>
                                         <div className={styles.miniCard}>
                                             <div className={styles.miniImg}>
-                                                {headerPreview ? (
-                                                    <Image src={headerPreview} alt="preview" fill style={{ objectFit: 'cover' }} />
+                                                {form.header_image ? (
+                                                    <Image src={form.header_image} alt="preview" fill style={{ objectFit: 'cover' }} onError={() => { }} />
                                                 ) : (
                                                     <span style={{ color: 'var(--text-muted)', fontSize: '2rem' }}>👕</span>
                                                 )}
@@ -482,32 +387,20 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className={styles.formActions}>
-                                <button
-                                    type="submit"
-                                    className={`btn btn-primary ${styles.submitBtn}`}
-                                    disabled={submitting}
-                                >
-                                    {submitting
-                                        ? 'Saving...'
-                                        : editId ? 'Update Product' : '+ Add to Store'
-                                    }
+                                <button type="submit" className={`btn btn-primary ${styles.submitBtn}`} disabled={submitting}>
+                                    {submitting ? 'Saving...' : editId ? 'Update Product' : '+ Add to Store'}
                                 </button>
-                                <button type="button" className="btn btn-ghost" onClick={resetForm}>
-                                    Reset
-                                </button>
+                                <button type="button" className="btn btn-ghost" onClick={resetForm}>Reset</button>
                             </div>
                         </form>
                     </div>
                 )}
 
-                {/* Manage Tab */}
                 {tab === 'manage' && (
                     <div className={styles.managePanel}>
                         <div className={styles.panelHeader}>
                             <h2>Manage Products</h2>
-                            <button className="btn btn-primary" onClick={() => { resetForm(); setTab('upload'); }}>
-                                + Add New
-                            </button>
+                            <button className="btn btn-primary" onClick={() => { resetForm(); setTab('upload'); }}>+ Add New</button>
                         </div>
 
                         {loading ? (
@@ -520,23 +413,14 @@ export default function AdminDashboard() {
                         ) : (
                             <div className={styles.table}>
                                 <div className={styles.tableHead}>
-                                    <span>Product</span>
-                                    <span>Category</span>
-                                    <span>Price</span>
-                                    <span>Sizes</span>
-                                    <span>Actions</span>
+                                    <span>Product</span><span>Category</span><span>Price</span><span>Sizes</span><span>Actions</span>
                                 </div>
                                 {products.map(p => (
                                     <div key={p.id} className={styles.tableRow}>
                                         <div className={styles.productCell}>
                                             <div className={styles.productThumb}>
                                                 {p.header_image ? (
-                                                    <Image
-                                                        src={getImg(p.header_image)}
-                                                        alt={p.name}
-                                                        fill
-                                                        style={{ objectFit: 'cover' }}
-                                                    />
+                                                    <Image src={p.header_image} alt={p.name} fill style={{ objectFit: 'cover' }} />
                                                 ) : (
                                                     <span>👕</span>
                                                 )}
@@ -544,27 +428,11 @@ export default function AdminDashboard() {
                                             <span className={styles.productName}>{p.name}</span>
                                         </div>
                                         <span className="badge">{p.category}</span>
-                                        <span className={styles.priceCell}>
-                                            ₹{typeof p.price === 'number' ? p.price.toLocaleString('en-IN') : p.price}
-                                        </span>
-                                        <span className={styles.sizesCell}>
-                                            {(p.sizes || []).join(', ') || '—'}
-                                        </span>
+                                        <span className={styles.priceCell}>₹{typeof p.price === 'number' ? p.price.toLocaleString('en-IN') : p.price}</span>
+                                        <span className={styles.sizesCell}>{(p.sizes || []).join(', ') || '—'}</span>
                                         <div className={styles.actions}>
-                                            <button
-                                                className="btn btn-ghost"
-                                                style={{ padding: '8px 14px', fontSize: '0.8rem' }}
-                                                onClick={() => handleEdit(p)}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="btn btn-danger"
-                                                style={{ padding: '8px 14px', fontSize: '0.8rem' }}
-                                                onClick={() => handleDelete(p.id, p.name)}
-                                            >
-                                                Delete
-                                            </button>
+                                            <button className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem' }} onClick={() => handleEdit(p)}>Edit</button>
+                                            <button className="btn btn-danger" style={{ padding: '8px 14px', fontSize: '0.8rem' }} onClick={() => setDeleteTarget({ id: p.id, name: p.name })}>Delete</button>
                                         </div>
                                     </div>
                                 ))}
