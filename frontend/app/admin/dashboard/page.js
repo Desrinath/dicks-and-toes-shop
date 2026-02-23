@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import styles from './page.module.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
@@ -341,9 +340,10 @@ export default function AdminDashboard() {
                                             onChange={handleChange}
                                             placeholder="https://i.ibb.co/your-image.jpg" />
                                         {form.header_image && (
-                                            <div style={{ marginTop: '12px', borderRadius: '10px', overflow: 'hidden', height: '220px', position: 'relative' }}>
-                                                <Image src={form.header_image} alt="Preview" fill style={{ objectFit: 'cover' }}
-                                                    onError={() => { }} />
+                                            <div style={{ marginTop: '12px', borderRadius: '10px', overflow: 'hidden', height: '220px' }}>
+                                                <img src={form.header_image} alt="Preview"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                                    onError={(e) => { e.target.style.display = 'none'; }} />
                                             </div>
                                         )}
                                     </div>
@@ -365,7 +365,9 @@ export default function AdminDashboard() {
                                         <div className={styles.miniCard}>
                                             <div className={styles.miniImg}>
                                                 {form.header_image ? (
-                                                    <Image src={form.header_image} alt="preview" fill style={{ objectFit: 'cover' }} onError={() => { }} />
+                                                    <img src={form.header_image} alt="preview"
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                                        onError={(e) => { e.target.style.display = 'none'; }} />
                                                 ) : (
                                                     <span style={{ color: 'var(--text-muted)', fontSize: '2rem' }}>👕</span>
                                                 )}
@@ -420,7 +422,8 @@ export default function AdminDashboard() {
                                         <div className={styles.productCell}>
                                             <div className={styles.productThumb}>
                                                 {p.header_image ? (
-                                                    <Image src={p.header_image} alt={p.name} fill style={{ objectFit: 'cover' }} />
+                                                    <img src={p.header_image} alt={p.name}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                                 ) : (
                                                     <span>👕</span>
                                                 )}
