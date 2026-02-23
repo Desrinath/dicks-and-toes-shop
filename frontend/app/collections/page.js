@@ -70,7 +70,19 @@ function CollectionsInner() {
 
                 <div className="container">
                     {loading ? (
-                        <div className={styles.loadingWrap}><div className="spinner" /></div>
+                        <div className={styles.grid}>
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className={styles.card}>
+                                    <div className={styles.skeletonCard}>
+                                        <div className={styles.skeletonImage} />
+                                        <div className={styles.skeletonInfo}>
+                                            <div className={styles.skeletonLine} style={{ width: '70%' }} />
+                                            <div className={styles.skeletonLine} style={{ width: '40%', marginTop: '8px' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : filtered.length === 0 ? (
                         <div className="no-results">
                             <div className="icon">🔍</div>

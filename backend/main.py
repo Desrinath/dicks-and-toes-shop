@@ -1,9 +1,10 @@
 import os
 import uuid
 import json
-import requests
+import time
+import httpx
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import FastAPI, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,6 +29,37 @@ app.add_middleware(
 )
 
 security = HTTPBearer(auto_error=False)
+
+# ──────────────────────────────────────────
+# SIMPLE IN-MEMORY TTL CACHE
+# ──────────────────────────────────────────
+
+_CACHE_TTL = 60  # seconds
+
+class _Cache:
+    def __init__(self):
+        self._store: dict = {}
+
+    def get(self, key: str):
+        entry = self._store.get(key)
+        if entry and (time.monotonic() - entry["ts"]) < _CACHE_TTL:
+            return entry["value"]
+        return None
+
+    def set(self, key: str, value):
+        self._store[key] = {"value": value, "ts": time.monotonic()}
+
+    def delete(self, key: str):
+        self._store.pop(key, None)
+
+    def clear(self):
+        self._store.clear()
+
+cache = _Cache()
+
+# ──────────────────────────────────────────
+# HELPERS
+# ──────────────────────────────────────────
 
 def get_supabase_headers():
     return {
@@ -82,9 +114,8 @@ async def create_product(
     condition: str = Form("Good"),
     coupon_code: str = Form(""),
     discount_amount: float = Form(0.0),
-    # Images are now URLs, not files
     header_image: str = Form(""),
-    images: str = Form("[]"),   # JSON array of image URLs e.g. ["url1","url2"]
+    images: str = Form("[]"),
     _admin: bool = Depends(verify_admin),
 ):
     product_id = str(uuid.uuid4())
@@ -112,10 +143,14 @@ async def create_product(
     }
 
     url = f"{SUPABASE_URL}/rest/v1/products"
-    resp = requests.post(url, headers=get_supabase_headers(), json=doc_data)
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(url, headers=get_supabase_headers(), json=doc_data)
 
     if resp.status_code not in [200, 201]:
         raise HTTPException(status_code=500, detail=resp.text)
+
+    # Invalidate product list cache so new product shows immediately
+    cache.clear()
 
     return resp.json()[0] if resp.json() else doc_data
 
@@ -139,45 +174,54 @@ async def update_product(
     _admin: bool = Depends(verify_admin),
 ):
     url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{product_id}"
-    resp = requests.get(url, headers=get_supabase_headers())
-    if resp.status_code != 200 or not resp.json():
-        raise HTTPException(status_code=404, detail="Product not found")
+    async with httpx.AsyncClient(timeout=15) as client:
+        check = await client.get(url, headers=get_supabase_headers())
+        if check.status_code != 200 or not check.json():
+            raise HTTPException(status_code=404, detail="Product not found")
 
-    image_list = json.loads(images) if images else []
-    if header_image and header_image not in image_list:
-        image_list.insert(0, header_image)
+        image_list = json.loads(images) if images else []
+        if header_image and header_image not in image_list:
+            image_list.insert(0, header_image)
 
-    update_data = {
-        "name": name,
-        "price": price,
-        "category": category,
-        "description": description,
-        "header_image": header_image,
-        "images": image_list,
-        "video_url": video_url,
-        "measurements": json.loads(measurements) if measurements else {},
-        "color": color,
-        "sizes": json.loads(sizes) if sizes else [],
-        "condition": condition,
-        "coupon_code": coupon_code,
-        "discount_amount": discount_amount,
-    }
+        update_data = {
+            "name": name,
+            "price": price,
+            "category": category,
+            "description": description,
+            "header_image": header_image,
+            "images": image_list,
+            "video_url": video_url,
+            "measurements": json.loads(measurements) if measurements else {},
+            "color": color,
+            "sizes": json.loads(sizes) if sizes else [],
+            "condition": condition,
+            "coupon_code": coupon_code,
+            "discount_amount": discount_amount,
+        }
 
-    resp = requests.patch(url, headers=get_supabase_headers(), json=update_data)
+        resp = await client.patch(url, headers=get_supabase_headers(), json=update_data)
+
     if resp.status_code not in [200, 204]:
         raise HTTPException(status_code=500, detail=resp.text)
+
+    # Invalidate cache
+    cache.clear()
 
     return resp.json()[0] if resp.json() else update_data
 
 
 @app.delete("/api/admin/products/{product_id}")
-def delete_product(product_id: str, _admin: bool = Depends(verify_admin)):
+async def delete_product(product_id: str, _admin: bool = Depends(verify_admin)):
     url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{product_id}"
-    resp = requests.get(url, headers=get_supabase_headers())
-    if resp.status_code != 200 or not resp.json():
-        raise HTTPException(status_code=404, detail="Product not found")
+    async with httpx.AsyncClient(timeout=15) as client:
+        check = await client.get(url, headers=get_supabase_headers())
+        if check.status_code != 200 or not check.json():
+            raise HTTPException(status_code=404, detail="Product not found")
+        await client.delete(url, headers=get_supabase_headers())
 
-    requests.delete(url, headers=get_supabase_headers())
+    # Invalidate cache
+    cache.clear()
+
     return {"success": True, "id": product_id}
 
 
@@ -186,15 +230,25 @@ def delete_product(product_id: str, _admin: bool = Depends(verify_admin)):
 # ──────────────────────────────────────────
 
 @app.get("/api/products")
-def list_products(category: Optional[str] = None):
+async def list_products(category: Optional[str] = None):
+    cache_key = f"products:{category or 'all'}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         url = f"{SUPABASE_URL}/rest/v1/products?select=*"
         if category and category != "all":
             url += f"&category=eq.{category}"
         url += "&order=created_at.desc"
-        resp = requests.get(url, headers=get_supabase_headers())
+
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(url, headers=get_supabase_headers())
+
         if resp.status_code == 200:
-            return resp.json()
+            data = resp.json()
+            cache.set(cache_key, data)
+            return data
         return []
     except Exception as e:
         print(e)
@@ -202,12 +256,22 @@ def list_products(category: Optional[str] = None):
 
 
 @app.get("/api/products/{product_id}")
-def get_product(product_id: str):
+async def get_product(product_id: str):
+    cache_key = f"product:{product_id}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{product_id}"
-    resp = requests.get(url, headers=get_supabase_headers())
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(url, headers=get_supabase_headers())
+
     if resp.status_code != 200 or not resp.json():
         raise HTTPException(status_code=404, detail="Product not found")
-    return resp.json()[0]
+
+    data = resp.json()[0]
+    cache.set(cache_key, data)
+    return data
 
 
 if __name__ == "__main__":
