@@ -9,7 +9,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ibb.co' },
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
+    unoptimized: true,
   },
 };
 
 module.exports = nextConfig;
+
