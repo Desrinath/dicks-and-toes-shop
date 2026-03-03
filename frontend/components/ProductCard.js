@@ -1,18 +1,13 @@
 'use client';
-import Image from 'next/image';
 import Link from 'next/link';
 import styles from './ProductCard.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-
 function getImageSrc(url) {
     if (!url) return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
-    // If it's an array (e.g. images field passed by mistake), take first element
     if (Array.isArray(url)) return url[0] || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
     return url;
 }
 
-// Safely parse JSONB fields that may come as strings, arrays or null
 function safeArray(val) {
     if (!val) return [];
     if (Array.isArray(val)) return val.map(String);
@@ -33,12 +28,14 @@ export default function ProductCard({ product }) {
     return (
         <Link href={`/product/${product.id}`} className={styles.card}>
             <div className={styles.imageWrap}>
-                <Image
+                <img
                     src={imageSrc}
                     alt={product.name}
-                    fill
                     className={styles.image}
-                    sizes="(max-width: 768px) 50vw, 33vw"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
+                    }}
                 />
                 <div className={styles.overlay} />
                 <div className={styles.hoverInfo}>
