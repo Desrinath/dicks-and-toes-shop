@@ -23,9 +23,11 @@ app = FastAPI(title="DICKS & TOES API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*", "Authorization", "Content-Type", "Accept"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 security = HTTPBearer(auto_error=False)
