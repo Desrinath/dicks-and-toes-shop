@@ -61,6 +61,10 @@ cache = _Cache()
 # HELPERS
 # ──────────────────────────────────────────
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 def get_supabase_headers():
     return {
         "apikey": SUPABASE_KEY,

@@ -8,7 +8,7 @@ import SizeChart from '@/components/SizeChart';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import styles from './page.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dicks-and-toes-shop-api.onrender.com';
 
 // Safely convert any JSONB field to an array of primitive strings
 function safeArray(val) {

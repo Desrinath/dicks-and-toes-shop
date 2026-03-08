@@ -7,7 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import styles from './page.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dicks-and-toes-shop-api.onrender.com';
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
