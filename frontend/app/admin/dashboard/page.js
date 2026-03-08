@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dicks-and-toes-shop-api.onrender.com';
+const API_URL = 'https://dicks-and-toes-shop-api.onrender.com';
 
 const EMPTY_FORM = {
     name: '', price: '', category: 'shirts', description: '',

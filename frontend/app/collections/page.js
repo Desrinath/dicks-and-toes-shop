@@ -7,7 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import styles from './page.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dicks-and-toes-shop-api.onrender.com';
+const API_URL = 'https://dicks-and-toes-shop-api.onrender.com';
 
 function CollectionsInner() {
     const searchParams = useSearchParams();
